@@ -81,7 +81,7 @@ KingsMove is a real-time, player-vs-player (PvP) web-based chess platform. It of
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/KingsMove.git
+git clone https://github.com/IshwarP32/KingsMove.git
 cd KingsMove
 ```
 ### 2. Setup Environment Variables
