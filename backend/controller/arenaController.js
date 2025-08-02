@@ -18,15 +18,11 @@ const allotGame = async (req,res)=>{
       return res.json({success:true, message:"Waiting for opponent"});
     }
     else{
-      const {gameId, newGame, err}= await initGame(userId, queue.shift());
-      if(!gameId){
-        return res.json({ success: false, message: err.message });
-      }
-      // need to notify user1
+      await initGame(userId, queue.shift());
       return res.json({ success: true, message:"Game Created"});
     }
   } catch (error) {
-    return res.json({success:false, message:err.message});
+    return res.json({success:false, message:error.message});
   }
 }
 
@@ -40,5 +36,26 @@ const stopWaiting = async (req,res)=>{
   return res.json({success:false, message:"Player not in queue"})
 }
 
+const findActiveGame = async (req, res) => {
+  try {
+    const userId = req.userId;
+    let player = "w";
+    let game = await gameModel.findOne({white:userId});
+    if(!game){
+      player = "b";
+      game = await gameModel.findOne({black:userId});
+    }
 
-export {allotGame, stopWaiting };
+    if (!game) {
+      return res.json({success:false, message: "No active game found" });
+    }
+    
+    res.json({success:true, message:"Game found",gameId:game._id,player});
+  } catch (error) {
+    console.error(error);
+    res.json({success:false,message:error.message});
+  }
+};
+
+
+export {allotGame, stopWaiting,findActiveGame };

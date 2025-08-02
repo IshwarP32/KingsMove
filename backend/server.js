@@ -9,11 +9,32 @@ import cookieParser from "cookie-parser";
 import { startCloudinary } from "./config/cloudinary.js";
 import { authUser } from "./middlewares/authUser.js";
 
+
 startCloudinary();
 connectDB();
 
 const app = express();
 const port = process.env.PORT || 4000;
+
+//Socket.io
+import http from "http";
+const server = http.createServer(app);
+import { Server } from "socket.io"; 
+import { changeIsOnline } from "./controller/userController.js";
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173", // your frontend URL
+    credentials: true,               // if using cookies/auth
+  },
+});
+
+io.on('connection',(socket)=>{
+  // changeIsOnline(true,socket.id);
+  socket.on("disconnect", (reason) => {
+    changeIsOnline(false,socket.id);
+  });
+})
+export { io };
 
 //middleware
 app.use(express.json());
@@ -31,4 +52,4 @@ app.get("/test",(req,res)=>{
     res.json({success:true});
 })
 
-app.listen(port, ()=>{console.log(`Server started at port: ${port}`);});
+server.listen(port, ()=>{console.log(`Server started at port: ${port}`);});

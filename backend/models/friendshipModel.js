@@ -6,11 +6,11 @@ const friendshipSchema = new mongoose.Schema({
     required:true,
     ref:"users"
   },
-  users: [{
+  sentTo: {
     type:mongoose.Schema.Types.ObjectId, // user IDs
     required: true,
     ref: "users"
-  }],
+  },
   status: {
     type: String,
     enum: ["accepted", "rejected", "pending", "deleted"],
@@ -34,7 +34,6 @@ friendshipSchema.index({ users: 1 });
 
 // Ensure consistent order + override expiration for accepted/deleted
 friendshipSchema.pre("save", function (next) {
-  this.users = this.users.sort(); // important
   if (this.status === "accepted") {
     this.expiresAt = undefined; // disable TTL
   } else if (this.status === "deleted") {

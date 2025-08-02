@@ -197,5 +197,46 @@ const logout = async (req, res) => {
   return res.json({ success: true, message: "Logged out successfully" });
 };
 
+const saveSocketId = async (req,res) =>{
+    try {
+        const {socketId} = req.body;
+        const userId = req.userId;
+    
+        const user = await userModel.findById(userId);
+        if(!user) return res.json({success:false,message:"User not found"});
 
-export {createUser,deleteUser,loginuser,generateAccessAndRefreshToken,userInfo,updateUser,logout,changePassword};
+        user.socketId = socketId;
+        user.isOnline=true;
+        await user.save();
+
+        return res.json({success:true, message:"socketId saved"});
+    } catch (error) {
+        console.log(error);
+        return res.json({success:false, message:error.message});
+    }
+}
+const deleteSocketId = async (req,res) =>{
+    try {
+        const userId = req.userId;
+        await userModel.findByIdAndUpdate(userId,{socketId:""});
+        return res.json({success:true, message:"socketId cleared"});
+    } catch (error) {
+        console.log(error);
+        return res.json({success:false, message:error.message});
+    }
+}
+
+const changeIsOnline = async (value,socketId)=>{
+    try {
+        const user = await userModel.findOne({socketId});
+        if (!user) return console.log("User not found for socketId:", socketId);
+        user.isOnline = value;
+        await user.save();
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export {createUser,deleteUser,loginuser,generateAccessAndRefreshToken,userInfo,updateUser,logout,changePassword,
+    saveSocketId,deleteSocketId, changeIsOnline
+};

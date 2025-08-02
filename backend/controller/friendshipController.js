@@ -1,10 +1,11 @@
 import friendshipModel from "../models/friendshipModel.js"
 import userModel from "../models/userModel.js"
 import mongoose from "mongoose";
+import { io } from "../server.js";
 
 const newFriendship = async (req, res) => {
   try {
-    const user1 = req.userId;
+    const user1 = req.userId; // sender
     const { username } = req.body;
 
     const user2 = await userModel.findOne({ username });
@@ -15,10 +16,14 @@ const newFriendship = async (req, res) => {
       });
     }
 
-    const users = [user1, user2._id].sort(); // always sorted
+    // 🔍 Check if friendship already exists
+    const exists = await friendshipModel.findOne({
+      $or: [
+        { sentBy: user1, sentTo: user2._id },
+        { sentBy: user2._id, sentTo: user1 },
+      ],
+    });
 
-    // Check if friendship already exists
-    const exists = await friendshipModel.findOne({ users });
     if (exists) {
       return res.json({
         success: false,
@@ -26,15 +31,30 @@ const newFriendship = async (req, res) => {
       });
     }
 
-    const frndshp = new friendshipModel({ users,sentBy:user1 });
+    // ✅ Create new friendship document
+    const frndshp = new friendshipModel({
+      sentBy: user1,
+      sentTo: user2._id,
+    });
+
     await frndshp.save();
+
+    // 🎯 Notify recipient via socket
+    if (user2.socketId) {
+      friendshipSocket(user2.socketId); // assumed function to emit
+    }
 
     return res.json({ success: true, message: "Request sent" });
   } catch (error) {
+    console.error("Error in newFriendship:", error);
     return res.json({ success: false, message: error.message });
   }
 };
 
+
+const friendshipSocket = async(socketId) =>{
+  io.to(socketId).emit("refreshFriends");
+}
 
 
 const changeFriendStatus = async (req, res) => {
@@ -44,52 +64,77 @@ const changeFriendStatus = async (req, res) => {
 
     const { action, friendshipId } = req.body;
 
-    const frndshp = await friendshipModel.findById(friendshipId).select("users status sentBy");
+    const frndshp = await friendshipModel.findById(friendshipId).select("sentBy sentTo status");
     if (!frndshp) return res.json({ success: false, message: "Friendship not found" });
 
-    // If already deleted
-    if (frndshp.status === "deleted") {
+    const { sentBy, sentTo, status } = frndshp;
+
+    const isSender = userId.toString() === sentBy.toString();
+    const isReceiver = userId.toString() === sentTo.toString();
+
+    // Already deleted
+    if (status === "deleted") {
       return res.json({ success: false, message: "Friendship is already deleted" });
     }
 
-    // Handle pending
-    if (frndshp.status === "pending") {
+    // Pending status
+    if (status === "pending") {
       if (action === "deleted") {
-        if (userId.toString() !== frndshp.sentBy.toString()) {
-          return res.json({ success: false, message: "Deletion not allowed" });
-        } else {
-          frndshp.status = "deleted";
-          await frndshp.save();
-          return res.json({ success: true, message: "Friendship deleted" });
+        if (!isSender) {
+          return res.json({ success: false, message: "Only sender can delete pending request" });
         }
+
+        frndshp.status = "deleted";
+        await frndshp.save();
+
+        const receiver = await userModel.findById(sentTo).select("socketId");
+        if (receiver?.socketId) {
+          friendshipSocket(receiver.socketId, "deleted");
+        }
+
+        return res.json({ success: true, message: "Friendship deleted" });
       }
 
-      // Only receiver can accept/reject
-      if (userId.toString() === frndshp.sentBy.toString()) {
-        return res.json({ success: false, message: "Sender cannot accept or reject" });
+      if (!isReceiver) {
+        return res.json({ success: false, message: "Only receiver can accept or reject" });
       }
 
       if (["accepted", "rejected"].includes(action)) {
         frndshp.status = action;
         await frndshp.save();
+
+        const sender = await userModel.findById(sentBy).select("socketId");
+        if (sender?.socketId) {
+          friendshipSocket(sender.socketId, action); // emit to sender
+        }
+
         return res.json({ success: true, message: `Status changed to ${action}` });
       }
 
       return res.json({ success: false, message: "Invalid action" });
     }
 
-    // Already accepted/rejected => only allow delete
+    // Already accepted or rejected
     if (action === "deleted") {
       frndshp.status = "deleted";
       await frndshp.save();
+
+      const otherUserId = isSender ? sentTo : sentBy;
+      const otherUser = await userModel.findById(otherUserId).select("socketId");
+      if (otherUser?.socketId) {
+        friendshipSocket(otherUser.socketId);
+      }
+
       return res.json({ success: true, message: "Friendship deleted" });
     }
 
     return res.json({ success: false, message: "This friendship can only be deleted" });
   } catch (error) {
+    console.error("Error in changeFriendStatus:", error);
     return res.json({ success: false, message: error.message });
   }
 };
+
 
 
 const getFriendships = async (req, res) => {
@@ -99,22 +144,23 @@ const getFriendships = async (req, res) => {
   const pipeline = [
     {
       $match: {
-        users: userObjectId
+        $or: [
+          { sentBy: userObjectId },
+          { sentTo: userObjectId }
+        ]
       }
     },
     {
-        $addFields: {
-            friendId: {
-            $first: {
-                $filter: {
-                input: "$users",
-                as: "uid",
-                cond: { $ne: ["$$uid", userObjectId] }
-                }
-            }
-            }
+      $addFields: {
+        friendId: {
+          $cond: [
+            { $eq: ["$sentBy", userObjectId] },
+            "$sentTo",
+            "$sentBy"
+          ]
         }
-        },
+      }
+    },
     {
       $lookup: {
         from: "users",
@@ -127,10 +173,11 @@ const getFriendships = async (req, res) => {
     {
       $project: {
         status: 1,
-        sentBy:1,
+        sentBy: 1,
+        sentTo: 1,
         username: "$friend.username",
         fId: "$friend._id",
-        fullName : "$friend.fullName",
+        fullName: "$friend.fullName",
         avatar: "$friend.avatar",
         isOnline: "$friend.isOnline",
         statistics: "$friend.statistics"
@@ -145,6 +192,7 @@ const getFriendships = async (req, res) => {
     res.json({ success: false, message: "Failed to get friends", error: err.message });
   }
 };
+
 
 
 

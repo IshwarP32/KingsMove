@@ -1,5 +1,5 @@
 import express from "express";
-import { changePassword, createUser, deleteUser, loginuser, logout, updateUser, userInfo } from "../controller/userController.js";
+import { changePassword, createUser, deleteSocketId, deleteUser, loginuser, logout, saveSocketId, updateUser, userInfo } from "../controller/userController.js";
 import upload from "../middlewares/multer.js";
 import { authUser } from "../middlewares/authUser.js";
 import { changeFriendStatus, getFriendships, newFriendship } from "../controller/friendshipController.js";
@@ -16,6 +16,8 @@ userRouter.post("/info",upload.none(),authUser,userInfo);
 userRouter.post("/logout",upload.none(),authUser,logout);
 userRouter.post("/change-pass",upload.none(),authUser,changePassword);
 userRouter.post("/update",upload.single("image"),authUser,updateUser);
+userRouter.post("/socket/update",upload.none(),authUser,saveSocketId);
+// userRouter.post("/socket/delete",upload.none(),authUser,deleteSocketId);
 
 //FriendshipRoutes
 userRouter.post("/friend/new",upload.none(),authUser,newFriendship);

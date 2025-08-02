@@ -2,6 +2,7 @@ import friendshipModel from "../models/friendshipModel.js";
 import challengeModel from "../models/challengeModel.js";
 import userModel from "../models/userModel.js";
 import { initGame } from "./gameLogic.js";
+import { io } from "../server.js";
 
 const createChallenge = async (req, res) => {
   try {
@@ -44,6 +45,8 @@ const createChallenge = async (req, res) => {
     const expiresAt = newChallenge.expiresAt;
     const formattedTime = `${expiresAt.getHours().toString().padStart(2, '0')}:${expiresAt.getMinutes().toString().padStart(2, '0')}`;
 
+    challengeSocket(recipient.socketId);
+
     return res.json({
       success: true,
       message: `Challenge sent! It will expire at ${formattedTime}`
@@ -55,6 +58,10 @@ const createChallenge = async (req, res) => {
   }
 };
 
+const challengeSocket = async (socketId)=>{
+  io.to(socketId).emit("challengeRefresh");
+  // toast.message("You have an update on your challenge");
+}
 
 const changeChallengeStatus = async (req, res) => {
     try {
@@ -66,12 +73,22 @@ const changeChallengeStatus = async (req, res) => {
             return res.json({ success: false, message: "Challenge Expired or Do not exit" });
         }
 
+        
         challenge.status = action;
         await challenge.save();
-
+        
         if (action === "accepted") {
-            initGame(challenge.from, challenge.to);
+          initGame(challenge.from, challenge.to);
         }
+        const fromUser = await userModel.findById(challenge.from).select("socketId");
+        const toUser = await userModel.findById(challenge.to).select("socketId");
+              
+        const from = fromUser?.socketId;
+        const to= toUser?.socketId;
+
+        // console.log(from)
+        challengeSocket(from);
+        challengeSocket(to);
         return res.json({ success: true, message: "Challenge status changed" });
     } catch (error) {
         return res.json({ success: false, message: error.message });

@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import { type } from "os";
 
 const gameSchema = new mongoose.Schema({
   white: {
@@ -8,6 +9,10 @@ const gameSchema = new mongoose.Schema({
   black: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
+  },
+  turn:{
+    type: String,
+    default: "w"
   },
   board: {
     type: [[String]],
@@ -23,10 +28,10 @@ const gameSchema = new mongoose.Schema({
         "bRook",
       ],
       ["bPawn", "bPawn", "bPawn", "bPawn", "bPawn", "bPawn", "bPawn", "bPawn"],
-      ["", "", "wBishop", "", "", "", "", ""],
-      ["", "", "", "bPawn", "", "", "", ""],
       ["", "", "", "", "", "", "", ""],
-      ["", "", "bRook", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
       ["wPawn", "wPawn", "wPawn", "wPawn", "wPawn", "wPawn", "wPawn", "wPawn"],
       [
         "wRook",
@@ -39,6 +44,10 @@ const gameSchema = new mongoose.Schema({
         "wRook",
       ],
     ],
+  },
+  winner: {
+    type: String,
+    default: ""
   },
   createdAt: {
     type: Date,

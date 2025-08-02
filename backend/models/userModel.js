@@ -40,7 +40,8 @@ const userSchema = new mongoose.Schema({
         default: false
     },
     socketId: {
-        type: String
+        type: String,
+        default: ""
     },
     statistics: {
         type: [Number], //[gamesWon, gamesLost, gamesDraw]

@@ -11,7 +11,38 @@ import Profile from "./pages/Profile";
 import ProtectedRoute from "./pages/ProtectedRoutes";
 import Friends from "./pages/Friends";
 import Challenges from "./pages/Challenges";
+import { useEffect } from "react";
+import socket from "./Socket";
+import axios from "axios";
+
 function App() {
+  const backendurl = import.meta.env.VITE_BACKEND_URL;
+  const saveSocket = async (socketId)=>{
+    try {
+      const {data} = await axios.post(backendurl+"/api/user/socket/update",{socketId},{withCredentials:true});
+      if(!data.success){
+        console.log(data.message);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  useEffect(() => {
+    socket.on("connect", () => {
+      // Save socket ID on database
+      saveSocket(socket.id);
+    });
+
+    // Example listener
+    socket.on("message", (data) => {
+      console.log("Received message:", data);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+  
   return (
     <div>
       <ToastContainer />

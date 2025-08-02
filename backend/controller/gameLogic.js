@@ -1,4 +1,7 @@
+import mongoose from "mongoose";
 import gameModel from "../models/gameModel.js";
+import { io } from "../server.js";
+import userModel from "../models/userModel.js";
 
 const gameBoards = {};
 const assets = {
@@ -62,60 +65,116 @@ const isSafeForKing = (player, rowIndex, colIndex, board) => {
 
 // Check status of game: returns { check, stalemate, checkmate }
 const statusCheck = async (req, res) => {
-  let check = false, stalemate = true;
-  const { player, gameId } = req.body;
+  const { gameId } = req.body;
   const board = gameBoards[gameId];
-  if (!board) return res.json({ message: "Board Not Found" });
-  const enemy = player === "w" ? "b" : "w";
 
-  // Find player's king position
-  let kingPos = null;
-  for (let i = 0; i < 8; i++) {
-    for (let j = 0; j < 8; j++) {
-      if (board[i][j] === player + "King") {
-        kingPos = { i, j };
-        break;
-      }
-    }
-    if (kingPos) break;
-  }
-  // 1. Check if any enemy piece can attack the king
-  for (let i = 0; i < 8; i++) {
-    for (let j = 0; j < 8; j++) {
-      if (board[i][j] && board[i][j][0] === enemy) {
-        const { tempCanEat } = get_moves({ body: { x: i, y: j, gameId } });
-        if (tempCanEat.some(([ei, ej]) => ei === kingPos.i && ej === kingPos.j)) {
-          check = true;
-        }
-      }
-    }
-  }
-  // 2. Check if any of player's pieces has a legal move
-  for (let i = 0; i < 8; i++) {
-    for (let j = 0; j < 8; j++) {
-      if (board[i][j] && board[i][j][0] === player) {
-        const { tempCanGo, tempCanEat } = get_moves({ body: { x: i, y: j, gameId } });
-        if (tempCanGo.length > 0 || tempCanEat.length > 0) {
-          stalemate = false;
+  if (!board) return res.json({ success: false, message: "Board Not Found" });
+
+  const players = ["w", "b"]; // Check both players
+  let result = ""; // "check", "checkmate", "stalemate", or ""
+  let affectedPlayer = null; // "w" or "b"
+  let kingPosition = null; // { row, col } of affected king
+
+  for (const player of players) {
+    const enemy = player === "w" ? "b" : "w";
+    let check = false;
+    let stalemate = true;
+    let currentKingPos = null;
+
+    // Find player's king position
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 8; j++) {
+        if (board[i][j] === `${player}King`) {
+          currentKingPos = { row: i, col: j };
           break;
         }
       }
+      if (currentKingPos) break;
     }
-    if(!stalemate) break;
+
+    if (!currentKingPos) continue; // King missing (shouldn't happen)
+
+    // 1. Check if any enemy piece can attack the king
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 8; j++) {
+        if (board[i][j] && board[i][j][0] === enemy) {
+          const { tempCanEat } = get_moves({ body: { x: i, y: j, gameId } });
+          if (tempCanEat.some(([ei, ej]) => ei === currentKingPos.row && ej === currentKingPos.col)) {
+            check = true;
+          }
+        }
+      }
+    }
+
+    // 2. Check if player has *any legal moves* (for stalemate/checkmate)
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 8; j++) {
+        if (board[i][j] && board[i][j][0] === player) {
+          const { tempCanGo, tempCanEat } = get_moves({ body: { x: i, y: j, gameId } });
+          if (tempCanGo.length > 0 || tempCanEat.length > 0) {
+            stalemate = false;
+            break;
+          }
+        }
+      }
+      if (!stalemate) break;
+    }
+
+    if (check && stalemate) {
+      result = "checkmate";
+      await gameModel.findByIdAndUpdate(gameId, { winner: enemy });
+      affectedPlayer = player;
+      kingPosition = currentKingPos;
+      break; // Game over, no need to check other player
+    } else if (check) {
+      result = "check";
+      affectedPlayer = player;
+      kingPosition = currentKingPos;
+      // Don't break — the other player *might* also be in check (rare)
+    } else if (stalemate) {
+      await gameModel.findByIdAndUpdate(gameId, { winner: draw });
+      result = "stalemate";
+      affectedPlayer = player;
+      kingPosition = currentKingPos;
+      // Don't break — check both sides for stalemate
+    }
   }
-  const result = check ? (stalemate ? "checkmate" : "check") : (stalemate ? "stalemate" : "")
-  res.json({result});
+  const game = await gameModel.findById(gameId);
+  res.json({ success: true, result, player: affectedPlayer, kingPosition,winner:game.winner });
 };
+
+
 
 // Update the board after a move, and return check/checkmate/stalemate status
 const updateBoard = async (req, res) => {
-  const {gameId, board} = req.body;
-  gameBoards[gameId] = board;
+  const { gameId, board } = req.body;
+
+  gameBoards[gameId] = board; // update in-memory
+
   try {
-    await gameModel.findByIdAndUpdate(gameId, { board });
-    res.json({ success: true});
+    const game = await gameModel.findById(gameId);
+    
+    
+    if (!game) {
+      return res.json({ success: false, message: "Game not found" });
+    }
+    game.board = board;
+    game.turn = game.turn === "w" ? "b":"w";
+    await game.save();
+    // 3. Get both users’ socket IDs
+    const users = await userModel.find({ _id: { $in: [game.white, game.black] } }).select("socketId");
+
+    // 4. Emit updateBoard to both users
+    for (const user of users) {
+      if (user.socketId) {
+        io.to(user.socketId).emit("updateBoard", board);
+      }
+    }
+
+    res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.log(err);
+    res.json({ success: false, message: err.message });
   }
 };
 
@@ -141,8 +200,10 @@ const initGame = async (white, black) => {
 
 // Get the current board for a game
 const getBoard = async (req, res) => {
-  let gameId  = req.cookies.gameId;
+  let {gameId}  = req.body;
+  
   const userId = req.userId;
+  let winner = "";
   if(!gameId){
     //try finding game for that user
     const game = await gameModel.findOne({$or: [{ white: userId }, { black: userId }]});
@@ -151,10 +212,11 @@ const getBoard = async (req, res) => {
     }
     res.cookie("gameId",game._id.toString(),options);
     gameId = game._id;
+    winner=game.winner;
   }
   if (gameBoards[gameId]) {
     // If found in memory, return it immediately
-    return res.json({ success: true, board: gameBoards[gameId] });
+    return res.json({ success: true, board: gameBoards[gameId],winner });
   }
   try {
     const game = await gameModel.findById(gameId);
@@ -162,7 +224,7 @@ const getBoard = async (req, res) => {
       return res.json({ success: false, message: "Game not found in DB" });
     }
     gameBoards[gameId] = game.board;
-    return res.json({ success: true, board: game.board });
+    return res.json({ success: true, board: game.board,winner:game.winner });
   } catch (error) {
     return res.json({ success: false, message: "Something went wrong" });
   }

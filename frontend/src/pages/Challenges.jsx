@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { UserContext } from "../../context/userContext";
 import { toast } from "react-toastify";
 import { Sword, UserCircle } from "lucide-react";
+import { UserContext } from "../../context/UserContext";
+import socket from "../Socket";
 
 const Challenges = () => {
   const changeChallengeStatus = async (challengeId, action) => {
@@ -50,6 +51,10 @@ const Challenges = () => {
       setLoading(false);
     }
   };
+
+  socket.on("challengeRefresh",()=>{
+    fetchChallenges();
+  })
 
   useEffect(() => {
     fetchChallenges();

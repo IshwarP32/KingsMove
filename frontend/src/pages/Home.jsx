@@ -3,6 +3,7 @@ import { UserContext } from '../../context/userContext';
 
 const Home = () => {
   const {navigate} = useContext(UserContext);
+  // var socket = io();
   return (
     <div className='relative w-full bg-blue-900 overflow-hidden'
     style={{ height: 'calc(100vh - 64px)' }}>

@@ -3,6 +3,7 @@ import axios from "axios";
 import { UserContext } from "../../context/userContext";
 import { toast } from "react-toastify";
 import { UserCircle } from "lucide-react";
+import socket from "../Socket";
 
 const Friends = () => {
   const [showModal, setShowModal] = useState(false);
@@ -75,6 +76,10 @@ const Friends = () => {
       toast.error("Something went wrong");
     }
   };
+
+  socket.on("refreshFriends",()=>{
+    fetchFriends();
+  })
 
   const challenge = async (fId) => {
   try {
