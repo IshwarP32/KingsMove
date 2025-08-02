@@ -41,8 +41,6 @@ KingsMove is a real-time, player-vs-player (PvP) web-based chess platform. It of
 
 ## 🖼️ Screenshots
 
-> _Attach screenshots below each heading by uploading them into the GitHub repository and referencing their paths here (e.g. `./screenshots/login.png`)._
-
 ### 🔐 Login & Create Account  
 ![Login Page](./screenshots/login.png)  
 ![Create Account Page](./screenshots/create.png)
