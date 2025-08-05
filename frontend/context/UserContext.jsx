@@ -15,7 +15,7 @@
         
         useEffect(()=>{
             getUserInfo();
-        },[])
+        },[getUserInfo])
 
         const getUserInfo = async ()=>{
             try {

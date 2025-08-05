@@ -4,12 +4,12 @@ import { ArenaContext } from "../../context/ArenaContext";
 
 const Arena = () => {
   const {
-    backendUrl,
+    // backendUrl,
     roughBoard,
     board,
     setBoard,
     get_moves,
-    isCheck,
+    // isCheck,
     checkCSS, // array or object with checked king position
     canEat,
     canGo,
@@ -26,7 +26,7 @@ const Arena = () => {
 
   useEffect(() => {
     checkActiveGame();
-  }, []);
+  }, [checkActiveGame]);
 
   const [finding, setFinding] = useState(false);
   const handleFindGame = async () => {
@@ -41,7 +41,7 @@ const Arena = () => {
 
   useEffect(() => {
     get_moves();
-  }, [activeCell]);
+  }, [activeCell, get_moves]);
 
   const clickHandler = (rowIndex, colIndex) => {
     // Block clicks if game is over

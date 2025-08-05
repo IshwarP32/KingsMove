@@ -28,7 +28,8 @@ const Friends = () => {
       } else {
         toast.error(data.message);
       }
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to send request:", error);
       toast.error("Failed to send request");
     } finally {
       setSending(false);
@@ -101,7 +102,7 @@ const Friends = () => {
 };
   useEffect(() => {
     fetchFriends();
-  }, []);
+  }, [fetchFriends]);
 
   return (
     <div className="min-h-[calc(100vh-64px)] p-6 bg-gradient-to-b from-gray-900 to-gray-800 text-white">

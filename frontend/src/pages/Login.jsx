@@ -14,7 +14,7 @@ const Login = () => {
     
     useEffect(()=>{
         if(userInfo && !loading) navigate("/")
-    },[userInfo])
+    },[userInfo, loading, navigate])
 
     const login = async ()=>{
         try {

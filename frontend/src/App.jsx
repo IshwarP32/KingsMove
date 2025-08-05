@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import { Routes, Route } from "react-router-dom";
 import Arena from "./pages/Arena";
 import Navbar from "./components/Navbar";
@@ -41,7 +40,7 @@ function App() {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [saveSocket]);
   
   return (
     <div>

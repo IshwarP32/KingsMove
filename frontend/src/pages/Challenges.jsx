@@ -26,7 +26,7 @@ const Challenges = () => {
     }
   };
 
-  const { backendurl, userInfo,navigate } = useContext(UserContext);
+  const { backendurl, navigate } = useContext(UserContext);
   const [sentChallenges, setSentChallenges] = useState([]);
   const [receivedChallenges, setReceivedChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +58,7 @@ const Challenges = () => {
 
   useEffect(() => {
     fetchChallenges();
-  }, []);
+  }, [fetchChallenges]);
 
   const renderChallengeCard = (challenge, type) => {
     return (

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext } from 'react'
 import assets from '../assets/assets.js'
 import { NavLink } from 'react-router-dom'
 import { UserContext } from '../../context/userContext.jsx'
@@ -17,9 +17,7 @@ const Navbar = () => {
       <div className='flex-1 justify-center items-center hidden sm:flex'>
         <NavLink
           to="/"
-          className={({ isActive }) =>
-            `text-xl font-bold relative px-4 py-1 rounded-xl ml-5 border-none group`
-          }
+          className="text-xl font-bold relative px-4 py-1 rounded-xl ml-5 border-none group"
         >
           {({ isActive }) => (
             <>
@@ -36,9 +34,7 @@ const Navbar = () => {
 
         <NavLink
           to="/friends"
-          className={({ isActive }) =>
-            `text-xl font-bold relative px-4 py-1 rounded-xl ml-5 border-none group`
-          }
+          className="text-xl font-bold relative px-4 py-1 rounded-xl ml-5 border-none group"
         >
           {({ isActive }) => (
             <>
@@ -54,9 +50,7 @@ const Navbar = () => {
         </NavLink>
         <NavLink
           to="/challenges"
-          className={({ isActive }) =>
-            `text-xl font-bold relative px-4 py-1 rounded-xl ml-5 border-none group`
-          }
+          className="text-xl font-bold relative px-4 py-1 rounded-xl ml-5 border-none group"
         >
           {({ isActive }) => (
             <>
@@ -72,9 +66,7 @@ const Navbar = () => {
         </NavLink>
         <NavLink
           to="/arena"
-          className={({ isActive }) =>
-            `text-xl font-bold relative px-4 py-1 rounded-xl ml-5 border-none group`
-          }
+          className="text-xl font-bold relative px-4 py-1 rounded-xl ml-5 border-none group"
         >
           {({ isActive }) => (
             <>

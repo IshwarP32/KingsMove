@@ -3,7 +3,6 @@ import { createContext } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { IdCard } from "lucide-react";
-import { useContext } from "react";
 import socket from "../src/Socket";
 
 export const ArenaContext = createContext();
@@ -172,7 +171,7 @@ const ArenaContextProvider = (props) => {
   }else{
     loadGame();
   }
-}, [gameId]);
+}, [gameId, checkActiveGame, loadGame]);
 
 
   const value = {
