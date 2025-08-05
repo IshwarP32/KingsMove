@@ -1,0 +1,18 @@
+{
+  "preset": "@babel/preset-env",
+  "testEnvironment": "node",
+  "verbose": true,
+  "collectCoverage": true,
+  "coverageDirectory": "coverage",
+  "coverageReporters": ["text", "lcov", "html"],
+  "testMatch": ["**/__tests__/**/*.js", "**/?(*.)+(spec|test).js"],
+  "transform": {
+    "^.+\\.js$": ["babel-jest", {"presets": [["@babel/preset-env", {"targets": {"node": "current"}}]]}]
+  },
+  "extensionsToTreatAsEsm": [".js"],
+  "globals": {
+    "ts-jest": {
+      "useESM": true
+    }
+  }
+}

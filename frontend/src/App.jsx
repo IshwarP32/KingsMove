@@ -4,7 +4,7 @@ import Arena from "./pages/Arena";
 import Navbar from "./components/Navbar";
 import ArenaContextProvider from "../context/ArenaContext";
 import Home from "./pages/Home";
-import UserContextProvider from "../context/userContext";
+import UserContextProvider from "../context/UserContext";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./pages/ProtectedRoutes";

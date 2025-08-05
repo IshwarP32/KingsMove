@@ -106,6 +106,11 @@ REFRESH_TOKEN_EXPIRY=7d
 ```
 ### 3. Install dependancies
 ```bash
+# Option 1: Use the automated setup script (recommended)
+chmod +x setup.sh
+./setup.sh
+
+# Option 2: Manual installation
 cd frontend
 npm install
 
@@ -121,6 +126,91 @@ npm run dev
 cd backend
 npm run dev
 ```
+
+**Or use Docker Compose for easy setup:**
+```bash
+docker-compose -f docker-compose.dev.yml up
+```
+
+---
+
+## 🧪 Testing
+
+### Frontend Tests
+```bash
+cd frontend
+npm test              # Run tests
+npm run test:coverage # Run with coverage
+```
+
+### Backend Tests
+```bash
+cd backend
+npm test              # Run tests
+npm run test:watch    # Run in watch mode
+```
+
+---
+
+## 🔧 Development Tools
+
+### Code Quality
+```bash
+# Frontend linting
+cd frontend
+npm run lint          # Check for errors
+
+# Backend linting & formatting
+cd backend
+npm run lint          # Check for errors
+npm run lint:fix      # Auto-fix errors
+npm run format        # Format code with Prettier
+```
+
+### Building
+```bash
+cd frontend
+npm run build         # Build for production
+npm run preview       # Preview production build
+```
+
+---
+
+## 📚 Documentation
+
+- **[API Documentation](./API_DOCS.md)** - Complete REST API reference
+- **[Contributing Guide](./CONTRIBUTING.md)** - Development setup and guidelines
+- **[Changelog](./CHANGELOG.md)** - Project changes and improvements
+
+---
+
+## 🛡️ Security Features
+
+- JWT-based authentication with access/refresh tokens
+- Rate limiting (5 auth attempts, 1000 API calls per 15 minutes)
+- Input validation and sanitization
+- Request logging for security monitoring
+- Environment variable validation
+
+---
+
+## 🏗️ Architecture
+
+### Frontend
+- **React 19** with hooks and context for state management
+- **Vite** for fast development and building
+- **TailwindCSS** for styling
+- **Socket.IO Client** for real-time communication
+- **React Router** for navigation
+- **Vitest** for testing
+
+### Backend
+- **Express.js** with middleware architecture
+- **Socket.IO** for real-time game updates
+- **MongoDB** with Mongoose ODM
+- **JWT** for authentication
+- **Cloudinary** for image storage
+- **Jest** for testing
 ---
 
 🤝 Acknowledgements

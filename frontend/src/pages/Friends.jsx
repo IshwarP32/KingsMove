@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { UserContext } from "../../context/userContext";
+import { UserContext } from "../../context/UserContext";
 import { toast } from "react-toastify";
 import { UserCircle } from "lucide-react";
 import socket from "../Socket";
