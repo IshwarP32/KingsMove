@@ -1,12 +1,12 @@
 import gameModel from "../models/gameModel.js";
 // In-memory board store (for demo; use Redis or similar for production)
-import {initGame} from "./gameLogic.js"
+import {initGame} from "./gameLogic.js";
 const queue = [];
 const options = { // for cookie
-      httpOnly : true,
-      secure : process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000 //1 day
-    }
+  httpOnly : true,
+  secure : process.env.NODE_ENV === "production",
+  maxAge: 24 * 60 * 60 * 1000 //1 day
+};
 
 // Unified king safety check: always pass the board explicitly
 
@@ -24,7 +24,7 @@ const allotGame = async (req,res)=>{
   } catch (error) {
     return res.json({success:false, message:error.message});
   }
-}
+};
 
 const stopWaiting = async (req,res)=>{
   const userId = req.userId;
@@ -33,8 +33,8 @@ const stopWaiting = async (req,res)=>{
     queue.splice(index, 1);
     return res.json({ success: true, message: "Player removed from queue" });
   }
-  return res.json({success:false, message:"Player not in queue"})
-}
+  return res.json({success:false, message:"Player not in queue"});
+};
 
 const findActiveGame = async (req, res) => {
   try {

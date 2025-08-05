@@ -24,9 +24,9 @@ const authUser = async (req, res, next) => {
     // Try refreshing token
     if (!refreshToken) return res.json({ success: false, message: "No Refresh Token" });
     try {
-        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+      jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
     } catch (err) {
-        return res.status(401).json({ success: false, message: "Session expired, Login Again" });
+      return res.status(401).json({ success: false, message: "Session expired, Login Again" });
     }
 
 

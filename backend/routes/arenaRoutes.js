@@ -1,7 +1,7 @@
 import express from "express";
 import { allotGame, stopWaiting ,findActiveGame} from "../controller/arenaController.js";
 // import { authUser } from "../middlewares/authUser.js";
-import {statusCheck,updateBoard,get_moves, getBoard} from "../controller/gameLogic.js"
+import {statusCheck,updateBoard,get_moves, getBoard} from "../controller/gameLogic.js";
 import { authGame } from "../middlewares/authGame.js";
 import { authUser } from "../middlewares/authUser.js";
 import { authTurn } from "../middlewares/authTurn.js";

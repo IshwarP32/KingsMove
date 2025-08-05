@@ -1,2 +1,28 @@
 **/node_modules/
 **/.env
+.DS_Store
+*.log
+dist/
+build/
+coverage/
+.nyc_output/
+*.tgz
+*.tar.gz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+
+# Development
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Docker
+docker-compose.override.yml

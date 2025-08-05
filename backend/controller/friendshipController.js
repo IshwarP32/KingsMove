@@ -1,5 +1,5 @@
-import friendshipModel from "../models/friendshipModel.js"
-import userModel from "../models/userModel.js"
+import friendshipModel from "../models/friendshipModel.js";
+import userModel from "../models/userModel.js";
 import mongoose from "mongoose";
 import { io } from "../server.js";
 
@@ -54,7 +54,7 @@ const newFriendship = async (req, res) => {
 
 const friendshipSocket = async(socketId) =>{
   io.to(socketId).emit("refreshFriends");
-}
+};
 
 
 const changeFriendStatus = async (req, res) => {

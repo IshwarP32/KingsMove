@@ -4,11 +4,13 @@ import upload from "../middlewares/multer.js";
 import { authUser } from "../middlewares/authUser.js";
 import { changeFriendStatus, getFriendships, newFriendship } from "../controller/friendshipController.js";
 import { changeChallengeStatus, createChallenge, getChallenges } from "../controller/challenegeController.js";
+import { validateUserRegistration, validateLogin } from "../middlewares/validation.js";
+import { authLimiter } from "../middlewares/rateLimiter.js";
 const userRouter = express.Router();
 
 //unsecure Routes
-userRouter.post("/create",upload.none(),createUser);
-userRouter.post("/login",upload.none(),loginuser);
+userRouter.post("/create", authLimiter, upload.none(), validateUserRegistration, createUser);
+userRouter.post("/login", authLimiter, upload.none(), validateLogin, loginuser);
 
 //secure Routes
 userRouter.post("/delete",upload.none(),authUser,deleteUser);
