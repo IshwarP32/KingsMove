@@ -1,8 +1,36 @@
 import React, { useContext, useEffect, useState } from "react";
 import assets from "../assets/assets";
 import { ArenaContext } from "../../context/ArenaContext";
+import socket from "../Socket";
+
+const Square = React.memo(({ rowIndex, colIndex, box, isActive, isCanGo, isEatable, isChecked, onClick }) => {
+  let bgClass = "";
+  if (isActive) bgClass = "bg-green-700";
+  else if (isChecked) bgClass = "bg-yellow-400/70 border-4 border-red-500 animate-pulse";
+  else if (isCanGo) bgClass = "bg-blue-700/80 border-blue-900";
+  else if (isEatable) bgClass = "bg-red-500/80";
+  else bgClass = (rowIndex + colIndex) % 2 ? "bg-gray-700" : "bg-gray-100";
+
+  return (
+    <div
+      className={`w-12 h-12 sm:w-18 sm:h-18 border ${bgClass}`}
+      onClick={onClick}
+    >
+      {box && (
+        <img
+          src={assets[box].icon}
+          alt={box}
+          className={isActive ? "scale-115 transition-all duration-1000" : ""}
+        />
+      )}
+    </div>
+  );
+});
 
 const Arena = () => {
+  socket.on("game started", () => {
+    location.reload();
+  })
   const {
     // backendUrl,
     roughBoard,
@@ -87,19 +115,19 @@ const Arena = () => {
 
   return gameId ? (
     <div className="min-h-[calc(100vh-64px)] relative">
-    {winner !== "" && (
-      <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
-        <div className="bg-white text-black rounded-xl shadow-xl p-6 text-center space-y-4">
-          <h2 className="text-3xl font-bold">{resultMessage}</h2>
-          <button
-            onClick={() => window.location.reload()} // Simple refresh to reset
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            Play Again
-          </button>
+      {winner !== "" && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
+          <div className="bg-white text-black rounded-xl shadow-xl p-6 text-center space-y-4">
+            <h2 className="text-3xl font-bold">{resultMessage}</h2>
+            <button
+              onClick={() => window.location.reload()} // Simple refresh to reset
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+              Play Again
+            </button>
+          </div>
         </div>
-      </div>
-    )}
+      )}
       {/* Game Over Overlay */}
 
       {/* Chess Board */}
@@ -111,39 +139,18 @@ const Arena = () => {
               <div key={rowIndexOrig} className="flex flex-row">
                 {row.map((box, colIndexOrig) => {
                   const colIndex = player === "b" ? 7 - colIndexOrig : colIndexOrig;
-                  const isChecked = isCheckedSquare(rowIndex, colIndex);
                   return (
-                    <div
+                    <Square
                       key={rowIndex + "-" + colIndex}
-                      className={`w-12 h-12 sm:w-18 sm:h-18 border
-                        ${
-                          isActive(rowIndex, colIndex)
-                            ? "bg-green-700"
-                            : isChecked
-                            ? "bg-yellow-400/70 border-4 border-red-500 animate-pulse"
-                            : isCanGo(rowIndex, colIndex)
-                            ? "bg-blue-700/80 border-blue-900"
-                            : isEatable(rowIndex, colIndex)
-                            ? "bg-red-500/80"
-                            : (rowIndex + colIndex) % 2
-                            ? "bg-gray-700"
-                            : "bg-gray-100"
-                        }
-                      `}
+                      rowIndex={rowIndex}
+                      colIndex={colIndex}
+                      box={box}
+                      isActive={isActive(rowIndex, colIndex)}
+                      isCanGo={isCanGo(rowIndex, colIndex)}
+                      isEatable={isEatable(rowIndex, colIndex)}
+                      isChecked={isCheckedSquare(rowIndex, colIndex)}
                       onClick={() => clickHandler(rowIndex, colIndex)}
-                    >
-                      {box && assets[box] && (
-                        <img
-                          src={assets[box].icon}
-                          alt={box}
-                          className={`${
-                            isActive(rowIndex, colIndex)
-                              ? "scale-115 transition-all duration-1000"
-                              : ""
-                          }`}
-                        />
-                      )}
-                    </div>
+                    />
                   );
                 })}
               </div>
@@ -151,29 +158,28 @@ const Arena = () => {
           }
         )}
       </div>
-    </div>
-  ) : (
-    <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-blue-900/10 text-white px-4">
-      <div
-        className={`bg-blue-800 rounded-3xl p-10 w-full max-w-md text-center shadow-2xl transition-all duration-300 ${
-          finding ? "opacity-80 cursor-pointer" : "hover:scale-105 cursor-pointer"
-        }`}
-        onClick={handleFindGame}
-      >
-        {!finding ? (
-          <>
-            <h2 className="text-3xl font-bold">Find Game</h2>
-            <p className="text-sm text-blue-200 mt-2">Click to start matchmaking</p>
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-4">
-            <p className="text-2xl font-semibold">Finding Game...</p>
-            <p className="text-sm text-blue-200 mt-2">Click To Cancel</p>
-          </div>
-        )}
       </div>
-    </div>
-  );
+     ) : (
+      <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-blue-900/10 text-white px-4">
+        <div
+          className={`bg-blue-800 rounded-3xl p-10 w-full max-w-md text-center shadow-2xl transition-all duration-300 ${finding ? "opacity-80 cursor-pointer" : "hover:scale-105 cursor-pointer"
+            }`}
+          onClick={handleFindGame}
+        >
+          {!finding ? (
+            <>
+              <h2 className="text-3xl font-bold">Find Game</h2>
+              <p className="text-sm text-blue-200 mt-2">Click to start matchmaking</p>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-4">
+              <p className="text-2xl font-semibold">Finding Game...</p>
+              <p className="text-sm text-blue-200 mt-2">Click To Cancel</p>
+            </div>
+          )}
+        </div>
+      </div>
+      ) 
 };
 
-export default Arena;
+      export default Arena;
