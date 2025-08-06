@@ -193,6 +193,9 @@ const initGame = async (white, black) => {
     // Store the board in memory for fast access
       gameBoards[gameId] = newGame.board;
     // ---------------------------- Need to notify the users that game has started --------------------
+    const player1 = userModel.findById(white);
+    const player2 = userModel.findById(black);
+    io.to(player1, player2).emit("game started");
 } catch (err) {
     return err;
   }
