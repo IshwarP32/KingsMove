@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState } from "react";
 import assets from "../assets/assets";
 import { ArenaContext } from "../../context/ArenaContext";
 import socket from "../Socket";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const Square = React.memo(({ rowIndex, colIndex, box, isActive, isCanGo, isEatable, isChecked, onClick }) => {
   let bgClass = "";
@@ -28,9 +30,6 @@ const Square = React.memo(({ rowIndex, colIndex, box, isActive, isCanGo, isEatab
 });
 
 const Arena = () => {
-  socket.on("game started", () => {
-    location.reload();
-  })
   const {
     backendUrl,
     roughBoard,
@@ -50,10 +49,29 @@ const Arena = () => {
     addToQueue,
     removeFromQueue,
     winner, // "" | "w" | "b" | "draw"
+    enemyUsername
   } = useContext(ArenaContext);
+
 
   useEffect(() => {
     checkActiveGame();
+  }, []);
+
+  // Socket listeners (mount once)
+  useEffect(() => {
+    const onGameStarted = () => window.location.reload();
+    const onEnemyLeft = () => {
+      toast.info("Opponent left the game");
+      setTimeout(()=>{
+        window.location.reload();
+      },2000);
+    };
+    socket.on("game started", onGameStarted);
+    socket.on("EnemyLeft", onEnemyLeft);
+    return () => {
+      socket.off("game_started", onGameStarted);
+      socket.off("EnemyLeft", onEnemyLeft);
+    };
   }, []);
 
   const [finding, setFinding] = useState(false);
@@ -99,6 +117,30 @@ const Arena = () => {
     }
   };
 
+  // Quit with confirmation
+  const handleQuit = async () => {
+    const ok = window.confirm("Are you sure you want to quit? You will be marked as Lost!");
+    if (!ok) return;
+    try {
+      const { data } = await axios.post(
+        backendUrl + "/api/arena/quit",
+        { gameId },
+        { withCredentials: true }
+      );
+      if (data.success) {
+        toast.success("You quit the game");
+        setTimeout(()=>{
+          window.location.reload();
+        },2000);
+      } else {
+        toast.error(data.message || "Failed to quit");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to quit");
+    }
+  };
+
   const isActive = (r, c) => activeCell[0] === r && activeCell[1] === c;
   const isCanGo = (r, c) => canGo.some(([x, y]) => x === r && y === c);
   const isEatable = (r, c) => canEat.some(([x, y]) => x === r && y === c);
@@ -115,6 +157,34 @@ const Arena = () => {
 
   return gameId ? (
     <div className="min-h-[calc(100vh-64px)] relative">
+      {/* Side Info Card + Quit */}
+      <div className="ml-10 hidden lg:flex absolute left-4 top-4 z-20 flex-col gap-3 items-stretch">
+        <div className="bg-white/90 backdrop-blur rounded-xl border border-blue-100 shadow-lg p-3 sm:p-4 w-56 text-center">
+          <div className="flex flex-col items-center gap-1">
+            <div className="min-w-0">
+              <div className="text-[11px] tracking-wide text-blue-500">Opponent Username : @{enemyUsername || "unknown"}</div>
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-blue-100 flex items-center justify-center gap-2">
+            <span className="text-[11px] tracking-wide text-gray-500">You</span>
+            <span className={`text-xs font-semibold px-2 py-1 rounded-md border ${
+              player === 'w'
+                ? 'bg-white text-gray-800 border-gray-300'
+                : 'bg-gray-900 text-white border-gray-700'
+            }`}>
+              {player === 'w' ? 'White' : 'Black'}
+            </span>
+          </div>
+        </div>
+        {winner === "" && (
+          <button
+            onClick={handleQuit}
+            className="w-56 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            Quit
+          </button>
+        )}
+      </div>
       {winner !== "" && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
           <div className="bg-white text-black rounded-xl shadow-xl p-6 text-center space-y-4">
@@ -130,7 +200,7 @@ const Arena = () => {
       )}
       {/* Game Over Overlay */}
 
-      {/* Chess Board */}
+  {/* Chess Board */}
       <div className="flex flex-col items-center m-5 sm:m-10">
         {board && (player === "b" ? [...board].map(row => [...row].reverse()).reverse() : board).map(
           (row, rowIndexOrig) => {

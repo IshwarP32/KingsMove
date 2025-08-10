@@ -1,5 +1,5 @@
 import express from "express";
-import { allotGame, stopWaiting ,findActiveGame} from "../controller/arenaController.js";
+import { allotGame, stopWaiting ,findActiveGame, QuitGame} from "../controller/arenaController.js";
 // import { authUser } from "../middlewares/authUser.js";
 import {statusCheck,updateBoard,get_moves, getBoard} from "../controller/gameLogic.js"
 import { authGame } from "../middlewares/authGame.js";
@@ -17,6 +17,7 @@ arenaRouter.post("/update",authGame,authTurn,updateBoard);
 arenaRouter.post("/load",authGame,getBoard);
 arenaRouter.post("/get-moves",authGame,authTurn,get_moves);
 arenaRouter.post("/get-status",authGame,statusCheck);
+arenaRouter.post("/quit",authGame,QuitGame);
 
 
 export default arenaRouter;

@@ -32,10 +32,13 @@ KingsMove is a real-time, player-vs-player (PvP) web-based chess platform. It of
 - 🤝 Friend System
   - Send/accept friend requests via username
   - View friends list
+  - Delete friend
 - 🧠 Chess Gameplay
   - Challenge a friend to a match
   - Random matchmaking
   - Real-time game updates using Socket.IO
+  - Only one active game at a time
+  - Quit game functionality
 
 ---
 
@@ -69,6 +72,10 @@ KingsMove is a real-time, player-vs-player (PvP) web-based chess platform. It of
 
 ### ✅ Completed Game  
 ![Completed Game](./screenshots/end.png)
+
+
+### 📱 Mobile Menu 
+![Mobile Menu](./screenshots/mobile.png)
 
 ---
 

@@ -98,18 +98,18 @@ const Profile = () => {
 
   return (
     <div
-      className="w-screen px-4 flex justify-center items-center"
+      className="w-screen px-4 sm:px-6 flex justify-center items-center pt-25 md:pt-15"
       style={{ height: "calc(100vh - 64px)" }}
     >
-      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Left: User Info */}
-        <div className="bg-blue-900 text-white rounded-3xl p-8 shadow-xl">
+        <div className="bg-blue-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl">
           {/* Avatar */}
           <div className="flex justify-center mb-6 relative group">
             <img
               src={form.avatar}
               alt="User Avatar"
-              className="w-28 h-28 rounded-full border-2 border-white shadow-md object-cover cursor-pointer"
+              className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-2 border-white shadow-md object-cover cursor-pointer"
               onClick={() =>
                 (isEditing || !isLoading) &&
                 document.getElementById("avatarInput").click()
@@ -163,22 +163,22 @@ const Profile = () => {
                   {isLoading ? "Saving.." : "Save"}
                 </button>
               ) : (
-                <div className="flex gap-2 text-xs mt-5">
+                <div className="flex flex-wrap justify-center gap-2 text-xs sm:text-sm mt-5">
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="bg-white text-blue-900 font-semibold px-6 py-2 rounded-full hover:bg-blue-100 transition"
+                    className="bg-white text-blue-900 font-semibold px-6 py-2 rounded-full hover:bg-blue-100 transition w-full sm:w-auto"
                   >
                     Edit Profile
                   </button>
                   <button
                     onClick={()=>setShowPasswordModal(true)}
-                    className="bg-white text-blue-900 font-semibold px-6 py-2 rounded-full hover:bg-blue-100 transition"
+                    className="bg-white text-blue-900 font-semibold px-6 py-2 rounded-full hover:bg-blue-100 transition w-full sm:w-auto"
                   >
                     Change Password
                   </button>
                   <button
                     onClick={() => setShowDeleteModal(true)}
-                    className="bg-red-800/80 text-white font-semibold px-6 py-2 rounded-full hover:bg-red-800 transition"
+                    className="bg-red-800/80 text-white font-semibold px-6 py-2 rounded-full hover:bg-red-800 transition w-full sm:w-auto"
                   >
                     Delete Account
                   </button>
@@ -189,24 +189,24 @@ const Profile = () => {
         </div>
 
         {/* Right: Statistics */}
-        <div className="bg-blue-900 text-white rounded-3xl p-8 shadow-xl flex flex-col justify-center items-center space-y-6">
-          <h2 className="text-2xl font-bold">Game Stats</h2>
-          <div className="w-full grid grid-cols-3 gap-4 text-center">
-            <div className="bg-white/10 p-4 rounded-xl">
+        <div className="bg-blue-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col justify-center items-center space-y-6">
+          <h2 className="text-xl sm:text-2xl font-bold">Game Stats</h2>
+          <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
+            <div className="bg-white/10 p-3 sm:p-4 rounded-xl">
               <h3 className="text-3xl font-bold text-green-400">
-                {userInfo?.won || 0}
+                {userInfo?.statistics[0] || 0}
               </h3>
               <p>Wins</p>
             </div>
-            <div className="bg-white/10 p-4 rounded-xl">
+            <div className="bg-white/10 p-3 sm:p-4 rounded-xl">
               <h3 className="text-3xl font-bold text-red-400">
-                {userInfo?.lost || 0}
+                {userInfo?.statistics[1] || 0}
               </h3>
               <p>Losses</p>
             </div>
-            <div className="bg-white/10 p-4 rounded-xl">
+            <div className="bg-white/10 p-3 sm:p-4 rounded-xl">
               <h3 className="text-3xl font-bold text-yellow-300">
-                {userInfo?.draw || 0}
+                {userInfo?.statistics[2] || 0}
               </h3>
               <p>Draws</p>
             </div>

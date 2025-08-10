@@ -83,6 +83,13 @@ const Friends = () => {
 
   const challenge = async (fId) => {
   try {
+    //check if game already exist
+    const isActiveGame = (await axios.post(backendurl+"/api/arena/findActive",{},{withCredentials:true})).data.success;
+    if(isActiveGame){
+      toast.error("Quit Active Game First !");
+      return;
+    }
+
     const { data } = await axios.post(
       `${backendurl}/api/user/challenge/new`,
       { userId:fId },
@@ -106,7 +113,7 @@ const Friends = () => {
   return (
     <div className="min-h-[calc(100vh-64px)] p-6 bg-gradient-to-b from-gray-900 to-gray-800 text-white">
       <h1 className="text-4xl font-bold text-center mb-8">Your Friends</h1>
-      <div className="fixed flex justify-end mb-4 right-10 top-[6rem]">
+  <div className="fixed z-30 flex md:justify-end right-4 bottom-4 md:top-[6rem] md:right-10 md:bottom-auto">
         <button
           onClick={() => setShowModal(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"

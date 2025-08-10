@@ -8,6 +8,20 @@ import socket from "../Socket";
 const Challenges = () => {
   const changeChallengeStatus = async (challengeId, action) => {
     try {
+      if (action === "accepted") {
+        //check if game already exist
+        const isActiveGame = (
+          await axios.post(
+            backendurl + "/api/arena/findActive",
+            {},
+            { withCredentials: true }
+          )
+        ).data.success;
+        if (isActiveGame) {
+          toast.error("Quit Active Game First !");
+          return;
+        }
+      }
       const { data } = await axios.post(
         `${backendurl}/api/user/challenge/change-status`,
         { challengeId, action }, // action = "accepted" or "declined"
@@ -26,7 +40,7 @@ const Challenges = () => {
     }
   };
 
-  const { backendurl, userInfo,navigate } = useContext(UserContext);
+  const { backendurl, userInfo, navigate } = useContext(UserContext);
   const [sentChallenges, setSentChallenges] = useState([]);
   const [receivedChallenges, setReceivedChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,9 +66,9 @@ const Challenges = () => {
     }
   };
 
-  socket.on("challengeRefresh",()=>{
+  socket.on("challengeRefresh", () => {
     fetchChallenges();
-  })
+  });
 
   useEffect(() => {
     fetchChallenges();
@@ -82,7 +96,9 @@ const Challenges = () => {
             {/* <p className="text-lg font-bold">
               {challenge.fullName || "Unknown User"}
             </p> */}
-            <p className="text-xl font-bold text-gray-300">{challenge.username}</p>
+            <p className="text-xl font-bold text-gray-300">
+              {challenge.username}
+            </p>
             <p className="text-xs mt-1 text-blue-300 capitalize">
               Status: {challenge.status}
             </p>
@@ -122,12 +138,14 @@ const Challenges = () => {
               </>
             )
           ) : challenge.status === "rejected" ? (
-            <p className="text-sm">
-            </p>
+            <p className="text-sm"></p>
           ) : (
-            <button 
-            onClick={()=>{navigate("/arena")}}
-            className="px-4 py-1 rounded bg-blue-600 hover:bg-blue-700 transition w-full">
+            <button
+              onClick={() => {
+                navigate("/arena");
+              }}
+              className="px-4 py-1 rounded bg-blue-600 hover:bg-blue-700 transition w-full"
+            >
               View Game
             </button>
           )}

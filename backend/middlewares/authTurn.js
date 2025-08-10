@@ -19,7 +19,7 @@ const authTurn = async (req, res, next) => {
         return res.json({ success: false, message: "Game expired or does not exist" });
     }
     const userId = req.userId;
-    console.log(game.turn, game.white, userId);
+    // console.log(game.turn, game.white, userId);
     if(game.turn == "w" && game.white.toString() !== userId.toString()){
       console.log("returned")
         return res.json({success:false, message:"Its not you turn bro !"})

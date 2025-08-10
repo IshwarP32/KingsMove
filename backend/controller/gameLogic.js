@@ -4,6 +4,12 @@ import { io } from "../server.js";
 import userModel from "../models/userModel.js";
 
 const gameBoards = {};
+// cookie options (used by getBoard)
+const options = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  maxAge: 24 * 60 * 60 * 1000,
+};
 const assets = {
     wPawn: { axis: [4] },
     wRook: { axis: [0,1] },
@@ -63,6 +69,43 @@ const isSafeForKing = (player, rowIndex, colIndex, board) => {
   return true;
 };
 
+// Helper: update user statistics atomically when a game ends
+const applyResultAndUpdateStats = async (gameId, result) => {
+  // console.log(gameId,result);
+  // result: 'w' | 'b' | 'draw'
+  if (!result) return null;
+  // set winner only if not already set (prevents double counting)
+  const updatedGame = await gameModel.findOneAndUpdate(
+    { _id: gameId, winner: "" },
+    { $set: { winner: result } },
+    { new: true }
+  );
+  if (!updatedGame) {
+    // winner already set elsewhere; do nothing
+    return null;
+  }
+
+  const whiteId = updatedGame.white;
+  const blackId = updatedGame.black;
+
+  // console.log(whiteId,blackId);
+
+  if (result === "draw") {
+    await userModel.updateMany(
+      { _id: { $in: [whiteId, blackId] } },
+      { $inc: { "statistics.2": 1 } }
+    );
+  } else if (result === "w") {
+    await userModel.updateOne({ _id: whiteId }, { $inc: { "statistics.0": 1 } });
+    await userModel.updateOne({ _id: blackId }, { $inc: { "statistics.1": 1 } });
+  } else if (result === "b") {
+    await userModel.updateOne({ _id: blackId }, { $inc: { "statistics.0": 1 } });
+    await userModel.updateOne({ _id: whiteId }, { $inc: { "statistics.1": 1 } });
+  }
+
+  return updatedGame;
+};
+
 // Check status of game: returns { check, stalemate, checkmate }
 const statusCheck = async (req, res) => {
   const { gameId } = req.body;
@@ -74,6 +117,7 @@ const statusCheck = async (req, res) => {
   let result = ""; // "check", "checkmate", "stalemate", or ""
   let affectedPlayer = null; // "w" or "b"
   let kingPosition = null; // { row, col } of affected king
+  let computedWinner = ""; // 'w' | 'b' | 'draw' | ''
 
   for (const player of players) {
     const enemy = player === "w" ? "b" : "w";
@@ -122,7 +166,7 @@ const statusCheck = async (req, res) => {
 
     if (check && stalemate) {
       result = "checkmate";
-      await gameModel.findByIdAndUpdate(gameId, { winner: enemy });
+      computedWinner = enemy; // 'w' or 'b'
       affectedPlayer = player;
       kingPosition = currentKingPos;
       break; // Game over, no need to check other player
@@ -132,15 +176,19 @@ const statusCheck = async (req, res) => {
       kingPosition = currentKingPos;
       // Don't break — the other player *might* also be in check (rare)
     } else if (stalemate) {
-      await gameModel.findByIdAndUpdate(gameId, { winner: draw });
       result = "stalemate";
+      computedWinner = "draw";
       affectedPlayer = player;
       kingPosition = currentKingPos;
       // Don't break — check both sides for stalemate
     }
   }
+  // If we detected a final result, apply winner and update stats (idempotent)
+  if (computedWinner) {
+    await applyResultAndUpdateStats(gameId, computedWinner);
+  }
   const game = await gameModel.findById(gameId);
-  res.json({ success: true, result, player: affectedPlayer, kingPosition,winner:game.winner });
+  res.json({ success: true, result, player: affectedPlayer, kingPosition, winner: game?.winner || "" });
 };
 
 
@@ -195,7 +243,7 @@ const initGame = async (white, black) => {
     // ---------------------------- Need to notify the users that game has started --------------------
     const player1 = userModel.findById(white);
     const player2 = userModel.findById(black);
-    io.to(player1, player2).emit("game started");
+    io.to(player1.socketId, player2.socketId).emit("game_started");
 } catch (err) {
     return err;
   }
@@ -438,4 +486,4 @@ const get_moves = (req, res) => {
         return { tempCanGo: legalCanGo, tempCanEat: legalCanEat };
 };
 
-export {statusCheck,updateBoard,get_moves,initGame,getBoard};
+export {statusCheck,updateBoard,get_moves,initGame,getBoard,applyResultAndUpdateStats};

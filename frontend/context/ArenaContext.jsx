@@ -34,7 +34,7 @@ const ArenaContextProvider = (props) => {
     const [activeCell, setActiveCell] = useState([-1, -1]);
     const [isCheck,setIsCheck] = useState(false);
     const [checkCSS,setCheckCSS] = useState([]);
-
+    const [enemyUsername,setEnemyUsername] = useState("");
   const [board, setBoard] = useState(roughBoard);
   const addToQueue = async () => {
     try {
@@ -154,6 +154,7 @@ const ArenaContextProvider = (props) => {
       if(data.success){
         setPlayer(data.player);
         setGameId(data.gameId);
+        setEnemyUsername(data.enemyUsername);
         return true;
       }
       else{
@@ -186,6 +187,7 @@ const ArenaContextProvider = (props) => {
     board,
     setBoard,
     canEat,canGo,setCanEat,setCanGo,activeCell,setActiveCell,get_moves,updateBoard,player,checkActiveGame,isCheck,winner
+    ,enemyUsername
   };
   return (
     <ArenaContext.Provider value={value}>
