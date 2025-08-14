@@ -5,11 +5,7 @@ import {initGame,applyResultAndUpdateStats} from "./gameLogic.js"
 import { io } from "../server.js";
 import userModel from "../models/userModel.js";
 const queue = [];
-const options = { // for cookie
-      httpOnly : true,
-      secure : process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000 //1 day
-    }
+// Keep cookie behavior centralized in authUser/login/logout
 
 // Unified king safety check: always pass the board explicitly
 
@@ -51,6 +47,10 @@ const findActiveGame = async (req, res) => {
 
     if (!game) {
       return res.json({success:false, message: "No active game found" });
+    }
+    // Check if game has ended (winner is not empty)
+    if (game.winner && game.winner !== "") {
+      return res.json({success:false, message: "Game has already ended" });
     }
     // find enemy and return username
     const enemyId = player === "w" ? game.black : game.white;

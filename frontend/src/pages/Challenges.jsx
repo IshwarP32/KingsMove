@@ -2,8 +2,8 @@ import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Sword, UserCircle } from "lucide-react";
-import { UserContext } from "../../context/UserContext";
-import socket from "../Socket";
+import { UserContext } from "../../context/UserContext.jsx";
+import socket from "../Socket.js";
 
 const Challenges = () => {
   const changeChallengeStatus = async (challengeId, action) => {

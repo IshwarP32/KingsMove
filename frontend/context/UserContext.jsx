@@ -8,7 +8,7 @@
 
     const UserContextProvider = (props)=>{
         // const [userInfo,setUserInfo] = useState(undefined);
-        const backendurl = import.meta.env.VITE_BACKEND_URL;
+    const backendurl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/+$/, '');
         const navigate = useNavigate();
         const [userInfo,setUserInfo] = useState(undefined);
         const [loading,setLoading]= useState(true);

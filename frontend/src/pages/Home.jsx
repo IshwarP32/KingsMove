@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { UserContext } from '../../context/userContext';
+import { UserContext } from '../../context/UserContext.jsx';
 
 const Home = () => {
   const {navigate} = useContext(UserContext);

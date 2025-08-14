@@ -4,12 +4,7 @@ import { io } from "../server.js";
 import userModel from "../models/userModel.js";
 
 const gameBoards = {};
-// cookie options (used by getBoard)
-const options = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  maxAge: 24 * 60 * 60 * 1000,
-};
+// cookie options could be used if setting cookies here; controllers mainly respect auth middleware
 const assets = {
     wPawn: { axis: [4] },
     wRook: { axis: [0,1] },

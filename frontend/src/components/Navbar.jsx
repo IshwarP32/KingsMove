@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react'
 import assets from '../assets/assets.js'
 import { NavLink } from 'react-router-dom'
-import { UserContext } from '../../context/userContext.jsx'
+import { UserContext } from '../../context/UserContext.jsx'
 
 const Navbar = () => {
   const { userInfo, navigate, logout } = useContext(UserContext);

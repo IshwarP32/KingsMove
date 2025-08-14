@@ -40,7 +40,11 @@ const authUser = async (req, res, next) => {
     const options = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict"
+      sameSite: process.env.COOKIE_SAMESITE || "None",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day - same as login
+      // Don't set domain for cross-site cookies between different Render services
+      // domain: process.env.COOKIE_DOMAIN,
+      path: "/",
     };
 
     res.cookie("accessToken", newAccessToken, options);

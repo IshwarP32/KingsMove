@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
-import assets from "../assets/assets";
-import { ArenaContext } from "../../context/ArenaContext";
-import socket from "../Socket";
+import assets from "../assets/assets.js";
+import { ArenaContext } from "../../context/ArenaContext.jsx";
+import socket from "../Socket.js";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -15,14 +15,14 @@ const Square = React.memo(({ rowIndex, colIndex, box, isActive, isCanGo, isEatab
 
   return (
     <div
-      className={`w-12 h-12 sm:w-18 sm:h-18 border ${bgClass}`}
+      className={`chess-square border ${bgClass}`}
       onClick={onClick}
     >
       {box && (
         <img
           src={assets[box].icon}
           alt={box}
-          className={isActive ? "scale-115 transition-all duration-1000" : ""}
+          className={`w-full h-full object-contain ${isActive ? "scale-115 transition-all duration-1000" : ""}`}
         />
       )}
     </div>
@@ -157,7 +157,7 @@ const Arena = () => {
 
   return gameId ? (
     <div className="min-h-[calc(100vh-64px)] relative">
-      {/* Side Info Card + Quit */}
+      {/* Side Info Card + Quit - Desktop Only */}
       <div className="ml-10 hidden lg:flex absolute left-4 top-4 z-20 flex-col gap-3 items-stretch">
         <div className="bg-white/90 backdrop-blur rounded-xl border border-blue-100 shadow-lg p-3 sm:p-4 w-56 text-center">
           <div className="flex flex-col items-center gap-1">
@@ -201,32 +201,104 @@ const Arena = () => {
       {/* Game Over Overlay */}
 
   {/* Chess Board */}
-      <div className="flex flex-col items-center m-5 sm:m-10">
-        {board && (player === "b" ? [...board].map(row => [...row].reverse()).reverse() : board).map(
-          (row, rowIndexOrig) => {
-            const rowIndex = player === "b" ? 7 - rowIndexOrig : rowIndexOrig;
-            return (
-              <div key={rowIndexOrig} className="flex flex-row">
-                {row.map((box, colIndexOrig) => {
-                  const colIndex = player === "b" ? 7 - colIndexOrig : colIndexOrig;
-                  return (
-                    <Square
-                      key={rowIndex + "-" + colIndex}
-                      rowIndex={rowIndex}
-                      colIndex={colIndex}
-                      box={box}
-                      isActive={isActive(rowIndex, colIndex)}
-                      isCanGo={isCanGo(rowIndex, colIndex)}
-                      isEatable={isEatable(rowIndex, colIndex)}
-                      isChecked={isCheckedSquare(rowIndex, colIndex)}
-                      onClick={() => clickHandler(rowIndex, colIndex)}
-                    />
-                  );
-                })}
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-4">
+        <div className="chessboard-responsive">
+          <style jsx>{`
+            .chessboard-responsive {
+              display: grid;
+              grid-template-rows: repeat(8, 1fr);
+              width: min(90vw, 90vh - 120px, 480px);
+              height: min(90vw, 90vh - 120px, 480px);
+              max-width: 480px;
+              max-height: 480px;
+              margin: 0 auto;
+            }
+            
+            .chess-square {
+              aspect-ratio: 1;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 100%;
+              height: 100%;
+            }
+            
+            .chess-row {
+              display: grid;
+              grid-template-columns: repeat(8, 1fr);
+              width: 100%;
+              height: 100%;
+            }
+            
+            @media (max-width: 640px) {
+              .chessboard-responsive {
+                width: min(95vw, 85vh - 100px);
+                height: min(95vw, 85vh - 100px);
+              }
+            }
+            
+            @media (orientation: landscape) and (max-height: 640px) {
+              .chessboard-responsive {
+                width: min(70vh, 90vw);
+                height: min(70vh, 90vw);
+              }
+            }
+          `}</style>
+          {board && (player === "b" ? [...board].map(row => [...row].reverse()).reverse() : board).map(
+            (row, rowIndexOrig) => {
+              const rowIndex = player === "b" ? 7 - rowIndexOrig : rowIndexOrig;
+              return (
+                <div key={rowIndexOrig} className="chess-row">
+                  {row.map((box, colIndexOrig) => {
+                    const colIndex = player === "b" ? 7 - colIndexOrig : colIndexOrig;
+                    return (
+                      <Square
+                        key={rowIndex + "-" + colIndex}
+                        rowIndex={rowIndex}
+                        colIndex={colIndex}
+                        box={box}
+                        isActive={isActive(rowIndex, colIndex)}
+                        isCanGo={isCanGo(rowIndex, colIndex)}
+                        isEatable={isEatable(rowIndex, colIndex)}
+                        isChecked={isCheckedSquare(rowIndex, colIndex)}
+                        onClick={() => clickHandler(rowIndex, colIndex)}
+                      />
+                    );
+                  })}
+                </div>
+              );
+            }
+          )}
+        </div>
+        
+        {/* Mobile Info Card + Quit - Only visible on mobile */}
+        <div className="lg:hidden mt-6 w-full max-w-sm px-4">
+          <div className="bg-white/90 backdrop-blur rounded-xl border border-blue-100 shadow-lg p-3 text-center">
+            <div className="flex flex-col items-center gap-1">
+              <div className="min-w-0">
+                <div className="text-[11px] tracking-wide text-blue-500">Opponent Username : @{enemyUsername || "unknown"}</div>
               </div>
-            );
-          }
-        )}
+            </div>
+            <div className="mt-3 pt-3 border-t border-blue-100 flex items-center justify-center gap-2">
+              <span className="text-[11px] tracking-wide text-gray-500">You</span>
+              <span className={`text-xs font-semibold px-2 py-1 rounded-md border ${
+                player === 'w'
+                  ? 'bg-white text-gray-800 border-gray-300'
+                  : 'bg-gray-900 text-white border-gray-700'
+              }`}>
+                {player === 'w' ? 'White' : 'Black'}
+              </span>
+            </div>
+          </div>
+          {winner === "" && (
+            <button
+              onClick={handleQuit}
+              className="w-full mt-3 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            >
+              Quit
+            </button>
+          )}
+        </div>
       </div>
       </div>
      ) : (

@@ -16,15 +16,23 @@ connectDB();
 const app = express();
 const port = process.env.PORT || 4000;
 
+// If behind a proxy (Render, Railway, Nginx), trust it so secure cookies work
+app.set("trust proxy", 1);
+
 //Socket.io
 import http from "http";
 const server = http.createServer(app);
 import { Server } from "socket.io"; 
 import { changeIsOnline } from "./controller/userController.js";
+// Allow single or comma-separated list of frontend origins via env
+const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "http://localhost:5173")
+  .split(",")
+  .map((o) => o.trim());
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // your frontend URL
-    credentials: true,               // if using cookies/auth
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "OPTIONS"],
   },
 });
 
@@ -37,12 +45,19 @@ io.on('connection',(socket)=>{
 export { io };
 
 //middleware
-app.use(express.json());
+// CORS at the top
 app.use(cors({
-  origin: 'http://localhost:5173',  // <-- use your frontend URL exactly
-  credentials: true,                // <-- allow cookies to be sent
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 }));
+
+// The global CORS middleware above already handles all preflights automatically
+// No need for explicit app.options() with Express 5
+
+app.use(express.json());
 app.use(cookieParser());
+
 
 //Api endpoints
 app.use("/api/arena",authUser,arenaRouter);

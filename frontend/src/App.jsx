@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { Routes, Route } from "react-router-dom";
-import Arena from "./pages/Arena";
-import Navbar from "./components/Navbar";
-import ArenaContextProvider from "../context/ArenaContext";
-import Home from "./pages/Home";
-import UserContextProvider from "../context/userContext";
-import Login from "./pages/Login";
-import Profile from "./pages/Profile";
-import ProtectedRoute from "./pages/ProtectedRoutes";
-import Friends from "./pages/Friends";
-import Challenges from "./pages/Challenges";
+import Arena from "./pages/Arena.jsx";
+import Navbar from "./components/Navbar.jsx";
+import ArenaContextProvider from "../context/ArenaContext.jsx";
+import Home from "./pages/Home.jsx";
+import UserContextProvider from "../context/UserContext.jsx";
+import Login from "./pages/Login.jsx";
+import Profile from "./pages/Profile.jsx";
+import ProtectedRoute from "./pages/ProtectedRoutes.jsx";
+import Friends from "./pages/Friends.jsx";
+import Challenges from "./pages/Challenges.jsx";
 import { useEffect } from "react";
-import socket from "./Socket";
+import socket from "./Socket.js";
 import axios from "axios";
 
 function App() {

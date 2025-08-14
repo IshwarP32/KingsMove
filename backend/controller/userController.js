@@ -47,15 +47,16 @@ const deleteUser = async(req,res)=>{
                 await deleteFromCloudinary(user.avatar);
             }
             await userModel.findByIdAndDelete(userId);
-            res.clearCookie("accessToken", {
+            const clearOptions = {
                 httpOnly: true,
-                secure: true,      // true if you're using HTTPS
-                sameSite: "None",  // adjust as per frontend CORS setup
-            }).clearCookie("refreshToken", {
-                httpOnly: true,
-                secure: true,      // true if you're using HTTPS
-                sameSite: "None",  // adjust as per frontend CORS setup
-            });
+                secure: process.env.NODE_ENV === "production",
+                sameSite: process.env.COOKIE_SAMESITE || "None",
+                // Don't set domain for cross-site cookies between different Render services
+                // domain: process.env.COOKIE_DOMAIN,
+                path: "/",
+            };
+            res.clearCookie("accessToken", clearOptions)
+               .clearCookie("refreshToken", clearOptions);
             return res.json({success:true, message:"User deleted successfullly"});
         }
         else{
@@ -102,9 +103,15 @@ const loginuser = async(req,res)=>{
             const options = {
                 httpOnly : true,
                 secure : process.env.NODE_ENV === "production",
-                maxAge: 24 * 60 * 60 * 1000 //1 day
+                sameSite: process.env.COOKIE_SAMESITE || "None",
+                maxAge: 24 * 60 * 60 * 1000, //1 day
+                // Don't set domain for cross-site cookies between different Render services
+                // domain: process.env.COOKIE_DOMAIN,
+                // Additional flags for better cookie persistence
+                path: "/",
             }
             return res.cookie("accessToken",accessToken,options).cookie("refreshToken",refreshToken,options)
+                .cookie("debug_auth", "logged_in", { ...options, httpOnly: false }) // Temporary debug cookie
                 .json({success:true, message:`user: ${accessfield} logged in successfully`});
         }
         else{
@@ -184,15 +191,15 @@ const changePassword = async(req,res)=>{
 }
 
 const logout = async (req, res) => {
-  res.clearCookie("accessToken", {
-    httpOnly: true,
-    secure: true,      // true if you're using HTTPS
-    sameSite: "None",  // adjust as per frontend CORS setup
-  }).clearCookie("refreshToken", {
-    httpOnly: true,
-    secure: true,      // true if you're using HTTPS
-    sameSite: "None",  // adjust as per frontend CORS setup
-  });
+    const options = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.COOKIE_SAMESITE || "None",
+        // Don't set domain for cross-site cookies between different Render services
+        // domain: process.env.COOKIE_DOMAIN,
+        path: "/",
+    };
+    res.clearCookie("accessToken", options).clearCookie("refreshToken", options);
 
   return res.json({ success: true, message: "Logged out successfully" });
 };

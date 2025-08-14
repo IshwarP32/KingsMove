@@ -1,5 +1,8 @@
 # KingsMove ♟️  
+
 **A PvP Live Chess Web Application**
+
+🌐 **[Live Demo](https://kingsmove-frontend.onrender.com)** | 🚀 **Play Now!**
 
 KingsMove is a real-time, player-vs-player (PvP) web-based chess platform. It offers seamless matchmaking, friend challenges, user account management, and live gameplay—all crafted as a solo project.
 

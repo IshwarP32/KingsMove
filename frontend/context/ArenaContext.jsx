@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { IdCard } from "lucide-react";
 import { useContext } from "react";
-import socket from "../src/Socket";
+import socket from "../src/Socket.js";
 
 export const ArenaContext = createContext();
 let roughBoard = [
@@ -26,7 +26,7 @@ const ArenaContextProvider = (props) => {
     loadGame();
   })
   const [winner,setWinner] = useState("");
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/+$/, '');
   const [gameId, setGameId] = useState(null);
   const [player, setPlayer] = useState("w");
   const [canGo, setCanGo] = useState([]);
