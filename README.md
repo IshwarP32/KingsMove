@@ -36,6 +36,7 @@ KingsMove is a real-time, player-vs-player (PvP) web-based chess platform. It of
   - Send/accept friend requests via username
   - View friends list
   - Delete friend
+  - Online Status
 - 🧠 Chess Gameplay
   - Challenge a friend to a match
   - Random matchmaking
