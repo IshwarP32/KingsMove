@@ -31,6 +31,7 @@ const Square = React.memo(({ rowIndex, colIndex, box, isActive, isCanGo, isEatab
 
 const Arena = () => {
   const {
+    finding,setFinding,
     backendUrl,
     roughBoard,
     board,
@@ -66,7 +67,7 @@ const Arena = () => {
         window.location.reload();
       },2000);
     };
-    socket.on("game started", onGameStarted);
+    socket.on("game_started", onGameStarted);
     socket.on("EnemyLeft", onEnemyLeft);
     return () => {
       socket.off("game_started", onGameStarted);
@@ -74,7 +75,7 @@ const Arena = () => {
     };
   }, []);
 
-  const [finding, setFinding] = useState(false);
+  
   const handleFindGame = async () => {
     if (!finding) {
       setFinding(true);

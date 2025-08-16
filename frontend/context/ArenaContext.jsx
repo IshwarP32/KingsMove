@@ -25,6 +25,7 @@ const ArenaContextProvider = (props) => {
     
     loadGame();
   })
+  const [finding, setFinding] = useState(false);
   const [winner,setWinner] = useState("");
   const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/+$/, '');
   const [gameId, setGameId] = useState(null);
@@ -43,9 +44,9 @@ const ArenaContextProvider = (props) => {
       // console.log(data);
       if (data.success) {
         checkActiveGame();
-        toast.success("Added to queue");
+        toast.success(data.message);
       } else {
-        toast.error("Something went wrong while adding to queue");
+        toast.error(data.message);
       }
     } catch (error) {
       toast.error(error.message);
@@ -93,41 +94,42 @@ const ArenaContextProvider = (props) => {
 
   const getStatus = async (id)=>{
     const {data} = await axios.post(backendUrl+"/api/arena/get-status",{gameId:id},{withCredentials:true});
-    // console.log(data.winner);
+    console.log(data);
     if(!data.success) return;
     if(data.winner!==""){
         setWinner(data.winner);
     }
     // console.log(data);
     if(data.result===""){
-      setIsCheck(false);
+        setIsCheck(false);
+        setCheckCSS(null);
     }
     else if(data.result == "check"){
       if(data.player === player){
-        setIsCheck(data.player);
-        setCheckCSS(data.kingPosition)
-        toast.warn("You have been checked");
+        setIsCheck(true);
+          setCheckCSS(data.kingPosition ? { i: data.kingPosition.row, j: data.kingPosition.col } : null);
+        // toast.warn("You have been checked");
       }
       else{
-        setIsCheck(data.player);
-        setCheckCSS(data.kingPosition)
-        toast.warn("Enemy is checked");
+        setIsCheck(true);
+          setCheckCSS(data.kingPosition ? { i: data.kingPosition.row, j: data.kingPosition.col } : null);
+        // toast.warn("Enemy is checked");
       }
     }else if(data.result == "checkmate"){
       if(data.player === player){
         setIsCheck(data.player);
-        setCheckCSS(data.kingPosition)
+          setCheckCSS(data.kingPosition ? { i: data.kingPosition.row, j: data.kingPosition.col } : null);
       }
       else{
         setIsCheck(data.player);
-        setCheckCSS(data.kingPosition)
+          setCheckCSS(data.kingPosition ? { i: data.kingPosition.row, j: data.kingPosition.col } : null);
       }
     }else{
       if(data.player === player){
-        toast.warn("You have been stalemate");
+        // toast.warn("You have been stalemate");
       }
       else{
-        toast.warn("You have stalemate enemy");
+        // toast.warn("You have stalemate enemy");
       }
     }
   }
@@ -151,6 +153,8 @@ const ArenaContextProvider = (props) => {
   const checkActiveGame = async ()=>{
     try {
       const {data} = await axios.post(backendUrl+"/api/arena/findActive",{},{withCredentials:true});
+      // console.log(data);
+      setFinding(data?.waiting);
       if(data.success){
         setPlayer(data.player);
         setGameId(data.gameId);
@@ -187,7 +191,7 @@ const ArenaContextProvider = (props) => {
     board,
     setBoard,
     canEat,canGo,setCanEat,setCanGo,activeCell,setActiveCell,get_moves,updateBoard,player,checkActiveGame,isCheck,winner
-    ,enemyUsername
+    ,enemyUsername,finding,setFinding
   };
   return (
     <ArenaContext.Provider value={value}>

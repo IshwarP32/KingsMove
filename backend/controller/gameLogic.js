@@ -72,7 +72,9 @@ const applyResultAndUpdateStats = async (gameId, result) => {
   // set winner only if not already set (prevents double counting)
   const updatedGame = await gameModel.findOneAndUpdate(
     { _id: gameId, winner: "" },
-    { $set: { winner: result } },
+    { $set: { winner: result,
+      expireAt: new Date(Date.now() + 5 * 60 * 1000)
+     } },
     { new: true }
   );
   if (!updatedGame) {
@@ -223,24 +225,28 @@ const updateBoard = async (req, res) => {
 
 // Initialize a game (call this when a new game starts)
 const initGame = async (white, black) => {
-    try {
-      // Create and save a new game in MongoDB
-      // console.log(white, black);
-      const newGame = new gameModel({
-        white,
-        black
-      });
-      await newGame.save();
-    
-      const gameId = newGame._id.toString();
+  try {
+    if (String(white) === String(black)) {
+      return { success: false, message: "Enemy and Player cant be same !" };
+    }
+    const newGame = new gameModel({ white, black });
+    await newGame.save();
+
+    const gameId = newGame._id.toString();
     // Store the board in memory for fast access
-      gameBoards[gameId] = newGame.board;
-    // ---------------------------- Need to notify the users that game has started --------------------
-    const player1 = userModel.findById(white);
-    const player2 = userModel.findById(black);
-    io.to(player1.socketId, player2.socketId).emit("game_started");
-} catch (err) {
-    return err;
+    gameBoards[gameId] = newGame.board;
+
+    // Notify users if socket IDs available
+    const [p1, p2] = await Promise.all([
+      userModel.findById(white).select("socketId"),
+      userModel.findById(black).select("socketId"),
+    ]);
+    const targets = [p1?.socketId, p2?.socketId].filter(Boolean);
+    if (targets.length) io.to(targets).emit("game_started");
+
+    return { success: true, message: "Game created", gameId };
+  } catch (err) {
+    return { success: false, message: err?.message || "Failed to create game" };
   }
 };
 
