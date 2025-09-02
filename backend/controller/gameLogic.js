@@ -209,10 +209,13 @@ const updateBoard = async (req, res) => {
     // 3. Get both users’ socket IDs
     const users = await userModel.find({ _id: { $in: [game.white, game.black] } }).select("socketId");
 
-    // 4. Emit updateBoard to both users
+    // 4. Emit updateBoard to both users (skip empty socketIds)
     for (const user of users) {
       if (user.socketId) {
         io.to(user.socketId).emit("updateBoard", board);
+        console.log(`[SOCKET] Emitted updateBoard to user:${user._id} socket:${user.socketId}`);
+      } else {
+        console.log(`[SOCKET] Skipped emission; missing socketId for user:${user._id}`);
       }
     }
 

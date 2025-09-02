@@ -48,8 +48,10 @@ const io = new Server(server, {
 });
 
 io.on('connection',(socket)=>{
+  console.log(`[SOCKET] Connected id=${socket.id} origin=${socket.handshake.headers.origin || 'n/a'}`);
   // changeIsOnline(true,socket.id);
   socket.on("disconnect", (reason) => {
+    console.log(`[SOCKET] Disconnected id=${socket.id} reason=${reason}`);
     changeIsOnline(false,socket.id);
   });
 })
@@ -62,23 +64,6 @@ app.use(cors({
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 }));
-
-// Extra safety: manually set headers when origin accepted (Express 5 sometimes short-circuits errors)
-// app.use((req, res, next) => {
-//   const origin = req.headers.origin;
-//   if (origin) {
-//     const normalized = origin.replace(/\/$/, "");
-//     if (allowedOrigins.includes(normalized)) {
-//       res.header("Access-Control-Allow-Origin", origin);
-//       res.header("Vary", "Origin");
-//       res.header("Access-Control-Allow-Credentials", "true");
-//     }
-//   }
-//   next();
-// });
-
-// The global CORS middleware above already handles all preflights automatically
-// No need for explicit app.options() with Express 5
 
 app.use(express.json());
 app.use(cookieParser());

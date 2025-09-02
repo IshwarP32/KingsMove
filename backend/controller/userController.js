@@ -236,11 +236,13 @@ const deleteSocketId = async (req,res) =>{
 const changeIsOnline = async (value,socketId)=>{
     try {
         const user = await userModel.findOne({socketId});
-        if (!user) return console.log("User not found for socketId:", socketId);
+        if (!user) return console.log("[SOCKET] No user for socketId disconnect:", socketId);
         user.isOnline = value;
+        // On disconnect clear stale socketId so future emits skip this user
+        if(!value) user.socketId = "";
         await user.save();
     } catch (error) {
-        console.log(error);
+        console.log("[SOCKET] changeIsOnline error", error.message);
     }
 }
 
