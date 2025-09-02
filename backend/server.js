@@ -27,13 +27,24 @@ import { changeIsOnline } from "./controller/userController.js";
 // Allow single or comma-separated list of frontend origins via env
 const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "http://localhost:5173")
   .split(",")
-  .map((o) => o.trim());
+  .map((o) => o.trim().replace(/\/$/, ""));
+
+// Helper: CORS origin matcher (logs mismatches for debugging)
+const corsOriginFn = (origin, callback) => {
+  if (!origin) return callback(null, true); // Non-browser or same-origin
+  const normalized = origin.replace(/\/$/, "");
+  if (allowedOrigins.includes(normalized)) return callback(null, true);
+  console.warn(`[CORS] Blocked origin: ${origin}. Allowed: ${allowedOrigins.join(" | ")}`);
+  return callback(new Error("Not allowed by CORS"));
+};
+
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: corsOriginFn,
     credentials: true,
     methods: ["GET", "POST", "OPTIONS"],
   },
+  allowEIO3: true, // tolerate older clients just in case
 });
 
 io.on('connection',(socket)=>{
@@ -47,10 +58,24 @@ export { io };
 //middleware
 // CORS at the top
 app.use(cors({
-  origin: allowedOrigins,
+  origin: corsOriginFn,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 }));
+
+// Extra safety: manually set headers when origin accepted (Express 5 sometimes short-circuits errors)
+// app.use((req, res, next) => {
+//   const origin = req.headers.origin;
+//   if (origin) {
+//     const normalized = origin.replace(/\/$/, "");
+//     if (allowedOrigins.includes(normalized)) {
+//       res.header("Access-Control-Allow-Origin", origin);
+//       res.header("Vary", "Origin");
+//       res.header("Access-Control-Allow-Credentials", "true");
+//     }
+//   }
+//   next();
+// });
 
 // The global CORS middleware above already handles all preflights automatically
 // No need for explicit app.options() with Express 5
