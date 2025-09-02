@@ -35,7 +35,8 @@ const authUser = async (req, res, next) => {
 
     req.userId = user._id;
 
-    const { accessToken: newAccessToken, newRefreshToken } = await generateAccessAndRefreshToken(user._id);
+  // Correctly destructure both returned tokens
+  const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshToken(user._id);
 
     const options = {
       httpOnly: true,

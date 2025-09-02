@@ -293,9 +293,18 @@ const get_moves = (req, res) => {
         }
       
         const board = gameBoards[gameId];
-        // console.log(x,y);
-        
-        const piece = board[x]?.[y];
+        // Guard: board not yet loaded into memory (race with /load)
+        if (!board) {
+          if (res) return res.json({ success: false, message: "Board not initialized", tempCanEat, tempCanGo });
+          return { tempCanGo, tempCanEat };
+        }
+        // Guard: coordinates out of range
+        if (x < 0 || x > 7 || y < 0 || y > 7) {
+          if (res) res.json({ success: true, tempCanEat, tempCanGo });
+          return { tempCanGo, tempCanEat };
+        }
+        // Safe optional access (previously board[x]?.[y] would throw if board undefined)
+        const piece = board?.[x]?.[y];
       
         if (!piece || !assets[piece]) {
           if (res) res.json({ success: true, tempCanEat, tempCanGo });
@@ -312,8 +321,10 @@ const get_moves = (req, res) => {
       
         // Helper to check if a move is legal (king is not in check after move)
         const isLegalMove = (fromX, fromY, toX, toY) => {
+          if (!inBounds(fromX, fromY) || !inBounds(toX, toY)) return false;
           const boardCopy = board.map(row => [...row]);
-          const movingPiece = boardCopy[fromX][fromY];
+          const movingPiece = boardCopy?.[fromX]?.[fromY];
+          if (!movingPiece) return false;
           boardCopy[toX][toY] = movingPiece;
           boardCopy[fromX][fromY] = "";
           // Find king position after move
